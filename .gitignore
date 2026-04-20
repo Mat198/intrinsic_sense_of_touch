@@ -42,3 +42,5 @@
 
 # Support files
 *.pdf
+
+*.pyc
