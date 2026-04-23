@@ -61,4 +61,4 @@ class CollisionDetector:
                     print(f"Efforts:   {efforts}")
                     print(f"Residuals: {self.residuals}")
                     self.last_print_stamp = current_time
-        return in_collision.tolist()
+        return in_collision.tolist(), self.residuals
