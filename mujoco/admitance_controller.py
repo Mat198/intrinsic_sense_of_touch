@@ -1,33 +1,37 @@
 class AdmittanceController:
-    def __init__(self, mass, damping, kr_gain):
-        self.virtual_mass = mass      # Virtual mass (low = robot feels light)
-        self.virtual_dumping = damping   # Damping (prevents oscillations)
-        self.residual_gain = kr_gain  # The gain for your residual r
+    def __init__(self, mass, damping, stiffness, kr_gain):
+        self.virtual_mass = mass
+        self.virtual_dumping = damping
+        self.virtual_stiffness = stiffness
+        self.residual_gain = kr_gain
+        self.stiffness_inv = 1.0 / stiffness # Maps torque to position offset
         
-        self.q_cmd = 0.0
-        self.dq_cmd = 0.0
-        self.last_time = 0.0
+        self.q_v = 0.0
+        self.dq_v = 0.0
 
-    def update(self, q_current, r_vector, time):
-        """
-        Switches to reflex mode once collision is detected.
-        r_vector: The residual vector calculated from your observer.
-        """
-        # The reflex torque law: τ = KR * r
+    def set_state(self, q_actual, dq_actual=0.0):
+        self.q_v = q_actual
+        self.dq_v = dq_actual
+
+    def update(self, q_actual, r_vector, gravity_torque, dt):
+        
+        # Calculate the 'Reflex' component
         tau_reflex = self.residual_gain * r_vector
         
-        # Admittance Physics: M*ddq + B*dq = tau_reflex
-        # Solving for acceleration: ddq = (tau_reflex - B*dq) / M
-        ddq = (tau_reflex - (self.virtual_dumping * self.dq_cmd)) / self.virtual_mass
-
-        dt = time - self.last_time 
-        self.last_time = time
+        error = self.q_v - q_actual
+        spring_force = self.virtual_stiffness * error
         
-        # Integrate to get the next position command
-        self.dq_cmd += ddq * dt
-        self.q_cmd += self.dq_cmd * dt
+        # Physics Integration (M*ddq + B*dq = tau_reflex)
+        ddq = (tau_reflex + spring_force - (self.virtual_dumping * self.dq_v)) / self.virtual_mass
+        self.dq_v += ddq * dt
+        self.q_v += self.dq_v * dt
         
-        return q_current + self.q_cmd
-
-import numpy as np
-
+        # Apply Gravity Offset
+        # Since we are position controlled, we translate the required 
+        # gravity torque into a small position 'lead'
+        q_gravity_offset = gravity_torque * self.stiffness_inv
+        
+        # The final command is the reflex motion + gravity offset
+        q_cmd = self.q_v + q_gravity_offset
+        
+        return q_cmd
