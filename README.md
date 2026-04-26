@@ -10,6 +10,8 @@ sensors and a dynamic model — no dedicated tactile skin required.
 
 The iiwa model used here is from the [mujoco_menagerie](https://github.com/google-deepmind/mujoco_menagerie).
 
+![](intrinsic_sense_of_touch.gif)
+
 ## How it works
 
 ### Collision detection — momentum-based residual observer
