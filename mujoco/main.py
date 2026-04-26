@@ -34,15 +34,9 @@ desired_q = np.array([0,-np.pi/6,0,np.pi/3,0,-np.pi/2,0])
 # Controller switch variables
 collision_avoid_mode = False
 
-# Sets a timer to evade collision and avoid switch back to the default PD controller too fast
-evading = False
-evading_start_time = 0
-last_time = 0
-collision_evasion_duration = 3.0
-
 # Default PD controller variables
-Kp = 0.0001
-Kd = 0.0001
+Kp = 0.1
+Kd = 0.01
 error = 0
 # Setting a different reference for pd so the robot doesn't snap imediatily
 pd_reference = desired_q.copy()
@@ -51,6 +45,7 @@ pd_return_rate = 0.05  # rad/s max speed when returning to desired_q after evasi
 # Launch the passive viewer
 with mujoco.viewer.launch_passive(model, data) as viewer:
     print("Simulation started!")
+    last_time = 0
     # Simulation loop
     while viewer.is_running():
         # Calculating time interval
@@ -78,7 +73,7 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
             data.ctrl[:] = desired_q
         else:
             # If not in collision, uses the default PD controller
-            if not any(collision_result) and not evading:
+            if not any(collision_result):
                 if collision_avoid_mode:
                     print("Normal operation mode")
                     collision_avoid_mode = False
@@ -91,22 +86,11 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
                 data.ctrl[:] = pd_reference + Kp * error - Kd * joint_velocities
             else:
                 # During collision, try to avoid it
-                if collision_avoid_mode and not evading:
-                    print("Retrying to evade...")
-                    evading = True
-                    evading_start_time = sim_time
                 if not collision_avoid_mode:
-                    print("Collision avoidance operation mode")
+                    print("Collision avoidance mode")
                     collision_avoid_mode = True
-                    evading = True
-                    evading_start_time = sim_time
-                    print("Starting evasion!")
                     admitance_controller.set_state(joint_positions, joint_velocities)
                     collision_detector.reset()
-                # Evades for a while and them try to return to default mode
-                if (sim_time - evading_start_time > collision_evasion_duration):
-                    evading = False
-                    print("Evasion ended!")
                 data.ctrl[:] = admitance_controller.update(joint_positions, residuals, data.qfrc_bias, dt)
 
         # Advance the simulation and update the viewer
