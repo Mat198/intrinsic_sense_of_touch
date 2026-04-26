@@ -84,7 +84,6 @@ The simulation loads the KUKA iiwa 14 model, moves to a default pose for 1 secon
 | `collision_threshold` | `main.py` | Min residual (N·m) to declare collision |
 | `kr_gain` | `AdmittanceController` | Scales residual into reflex torque |
 | `mass`, `damping`, `stiffness` | `AdmittanceController` | Virtual dynamics of the compliant behaviour |
-| `collision_evasion_duration` | `main.py` | Seconds to stay in admittance mode after collision |
 | `pd_return_rate` | `main.py` | Max rad/s when gliding back to `desired_q` after evasion |
 
 ## Reference papers
