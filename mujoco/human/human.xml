@@ -1,0 +1,80 @@
+<mujoco model="stick_human">
+    <compiler angle="degree" coordinate="local" inertiafromgeom="true"/>
+    
+    <option integrator="RK4" timestep="0.01" gravity="0 0 -9.81"/>
+
+    <default>
+        <!-- Set contype/conaffinity to 1 so it interacts with your existing scene floor -->
+        <joint armature="0.01" damping="0.1" limited="true"/>
+        <geom contype="1" conaffinity="1" condim="3" density="1000" friction=".5 .1 .1" rgba="0.8 0.6 0.4 1"/>
+    </default>
+
+    <worldbody>
+        <!-- Pelvis rotated 90 degrees on Z -->
+        <body name="pelvis" pos="0 0 1.2" euler="0 0 90">
+            <freejoint name="root"/>
+            <geom name="pelvis_geom" type="capsule" fromto="-0.1 0 0 0.1 0 0" size="0.05"/>
+            
+            <!-- Torso: Spine lengthened to 0.6 -->
+            <body name="torso" pos="0 0 0">
+                <geom name="spine" type="capsule" fromto="0 0 0 0 0 0.6" size="0.045"/>
+                
+                <!-- Head moved up to match longer torso -->
+                <body name="head" pos="0 0 0.7">
+                    <geom name="head_geom" type="sphere" size="0.08"/>
+                </body>
+
+                <!-- Right Arm: Positioned higher (0.55) to stay on the torso -->
+                <body name="right_upper_arm" pos="0 -0.15 0.55">
+                    <joint name="right_shoulder" type="ball" range="0 180"/>
+                    <geom name="rua_geom" type="capsule" fromto="0 0 0 0 -0.25 0" size="0.03"/>
+                    <body name="right_lower_arm" pos="0 -0.25 0">
+                        <joint name="right_elbow" type="hinge" pos="0 0 0" axis="0 0 1" range="0 150"/>
+                        <geom name="rla_geom" type="capsule" fromto="0 0 0 0 -0.25 0" size="0.025"/>
+                    </body>
+                </body>
+
+                <!-- Left Arm: Positioned higher (0.55) to stay on the torso -->
+                <body name="left_upper_arm" pos="0 0.15 0.55">
+                    <joint name="left_shoulder" type="ball" range="0 180"/>
+                    <geom name="lua_geom" type="capsule" fromto="0 0 0 0 0.25 0" size="0.03"/>
+                    <body name="left_lower_arm" pos="0 0.25 0">
+                        <joint name="left_elbow" type="hinge" pos="0 0 0" axis="0 0 1" range="-150 0"/>
+                        <geom name="lla_geom" type="capsule" fromto="0 0 0 0 0.25 0" size="0.025"/>
+                    </body>
+                </body>
+            </body>
+
+            <!-- Right Leg -->
+            <body name="right_thigh" pos="0 -0.1 0">
+                <joint name="right_hip" type="ball" range="0 90"/>
+                <geom name="rt_geom" type="capsule" fromto="0 0 0 0 0 -0.4" size="0.035"/>
+                <body name="right_shin" pos="0 0 -0.4">
+                    <joint name="right_knee" type="hinge" pos="0 0 0" axis="0 1 0" range="0 150"/>
+                    <geom name="rs_geom" type="capsule" fromto="0 0 0 0 0 -0.4" size="0.03"/>
+                </body>
+            </body>
+
+            <!-- Left Leg -->
+            <body name="left_thigh" pos="0 0.1 0">
+                <joint name="left_hip" type="ball" range="0 90"/>
+                <geom name="lt_geom" type="capsule" fromto="0 0 0 0 0 -0.4" size="0.035"/>
+                <body name="left_shin" pos="0 0 -0.4">
+                    <joint name="left_knee" type="hinge" pos="0 0 0" axis="0 1 0" range="0 150"/>
+                    <geom name="ls_geom" type="capsule" fromto="0 0 0 0 0 -0.4" size="0.03"/>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor joint="right_shoulder" ctrlrange="-100 100"/>
+        <motor joint="right_elbow" ctrlrange="-50 50"/>
+        <motor joint="left_shoulder" ctrlrange="-100 100"/>
+        <motor joint="left_elbow" ctrlrange="-50 50"/>
+        <motor joint="right_hip" ctrlrange="-100 100"/>
+        <motor joint="right_knee" ctrlrange="-70 70"/>
+        <motor joint="left_hip" ctrlrange="-100 100"/>
+        <motor joint="left_knee" ctrlrange="-70 70"/>
+    </actuator>
+</mujoco>
